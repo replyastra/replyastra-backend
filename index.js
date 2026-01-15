@@ -37,10 +37,10 @@ app.post("/api/dm", (req, res) => {
     reply = "Book free demo here: replyastra.online/demo";
   }
 
-  res.json({
-    user_message: message,
-    bot_reply: reply
-  });
+res.json({
+  reply: reply
+});
+
 });
 
 // Server start
