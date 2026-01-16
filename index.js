@@ -110,6 +110,22 @@ app.get("/api/instagram/test", async (req, res) => {
   }
 });
 
+const axios = require("axios");
+
+app.get("/api/instagram/test", async (req, res) => {
+  try {
+    const url =
+      `https://graph.facebook.com/v18.0/${process.env.IG_USER_ID}` +
+      `?fields=username&access_token=${process.env.IG_TOKEN}`;
+
+    const response = await axios.get(url);
+
+    res.json(response.data);
+
+  } catch (err) {
+    res.status(400).json(err.response?.data || err.message);
+  }
+});
 
 // ================= START =================
 
