@@ -1,19 +1,24 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const axios = require("axios");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Fake DB (temporary - later we connect Supabase)
+// TEMP DB
 let users = [];
 
-// Home route
+// HOME
 app.get("/", (req, res) => {
-  res.send("ReplyAstra API with Database 🚀");
+  res.send("ReplyAstra API 🚀");
 });
+
+
+// ================= AUTH =================
 
 // REGISTER
 app.post("/api/register", async (req, res) => {
@@ -33,50 +38,6 @@ app.post("/api/register", async (req, res) => {
   res.json({ msg: "User registered successfully" });
 });
 
-// LOGIN API
-app.post("/api/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const user = await pool.query(
-      "SELECT * FROM users WHERE email=$1",
-      [email]
-    );
-
-    if (user.rows.length === 0) {
-      return res.status(400).json({ msg: "User not found" });
-    }
-
-    const valid = await bcrypt.compare(
-      password,
-      user.rows[0].password
-    );
-
-    if (!valid) {
-      return res.status(400).json({ msg: "Invalid password" });
-    }
-
-    const token = jwt.sign(
-      { id: user.rows[0].id },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
-
-    res.json({ token });
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// DASHBOARD (Protected)
-app.get("/api/dashboard", auth, (req, res) => {
-  res.json({
-    msg: "Welcome to ReplyAstra Dashboard 🚀",
-    userId: req.user.id
-  });
-});
-
 
 // LOGIN
 app.post("/api/login", async (req, res) => {
@@ -90,38 +51,69 @@ app.post("/api/login", async (req, res) => {
   if (!match)
     return res.status(400).json({ msg: "Wrong password" });
 
-  const token = jwt.sign({ email }, "secret123");
+  const token = jwt.sign(
+    { email },
+    process.env.JWT_SECRET || "replyastra_secret",
+    { expiresIn: "1d" }
+  );
 
   res.json({ token });
 });
 
-// DASHBOARD
-app.get("/api/dashboard", (req, res) => {
-  res.json({ msg: "Welcome to dashboard 🎉" });
-});
-
-// Start
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log("Server running on", PORT);
-});
 
 // AUTH MIDDLEWARE
 function auth(req, res, next) {
   const token = req.header("Authorization");
 
-  if (!token) {
-    return res.status(401).json({ msg: "No token, access denied" });
-  }
+  if (!token)
+    return res.status(401).json({ msg: "No token" });
 
   try {
     const decoded = jwt.verify(
       token.replace("Bearer ", ""),
-      process.env.JWT_SECRET
+      process.env.JWT_SECRET || "replyastra_secret"
     );
     req.user = decoded;
     next();
-  } catch (err) {
+  } catch {
     res.status(401).json({ msg: "Invalid token" });
   }
 }
+
+
+// DASHBOARD
+app.get("/api/dashboard", auth, (req, res) => {
+  res.json({
+    msg: "Welcome to ReplyAstra Dashboard 🚀",
+    user: req.user.email
+  });
+});
+
+
+// ================= INSTAGRAM =================
+
+// TEST TOKEN API  (ADD HERE 👈)
+app.get("/api/instagram/test", async (req, res) => {
+  try {
+    const token = process.env.IG_TOKEN;
+    const userId = process.env.IG_USER_ID;
+
+    const url =
+      `https://graph.facebook.com/v18.0/${userId}?fields=username&access_token=${token}`;
+
+    const response = await axios.get(url);
+
+    res.json(response.data);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// ================= START =================
+
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log("Server running on", PORT);
+});
