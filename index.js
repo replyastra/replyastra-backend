@@ -3,7 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const axios = require("axios");
+const axios = require("axios"); // ONLY ONCE
 
 const app = express();
 app.use(cors());
@@ -92,26 +92,7 @@ app.get("/api/dashboard", auth, (req, res) => {
 
 // ================= INSTAGRAM =================
 
-// TEST TOKEN API  (ADD HERE 👈)
-app.get("/api/instagram/test", async (req, res) => {
-  try {
-    const token = process.env.IG_TOKEN;
-    const userId = process.env.IG_USER_ID;
-
-    const url =
-      `https://graph.facebook.com/v18.0/${userId}?fields=username&access_token=${token}`;
-
-    const response = await axios.get(url);
-
-    res.json(response.data);
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-const axios = require("axios");
-
+// TEST TOKEN API ✅
 app.get("/api/instagram/test", async (req, res) => {
   try {
     const url =
@@ -126,6 +107,7 @@ app.get("/api/instagram/test", async (req, res) => {
     res.status(400).json(err.response?.data || err.message);
   }
 });
+
 
 // ================= START =================
 
