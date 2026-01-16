@@ -69,6 +69,14 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+// DASHBOARD (Protected)
+app.get("/api/dashboard", auth, (req, res) => {
+  res.json({
+    msg: "Welcome to ReplyAstra Dashboard 🚀",
+    userId: req.user.id
+  });
+});
+
 
 // LOGIN
 app.post("/api/login", async (req, res) => {
@@ -97,3 +105,23 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Server running on", PORT);
 });
+
+// AUTH MIDDLEWARE
+function auth(req, res, next) {
+  const token = req.header("Authorization");
+
+  if (!token) {
+    return res.status(401).json({ msg: "No token, access denied" });
+  }
+
+  try {
+    const decoded = jwt.verify(
+      token.replace("Bearer ", ""),
+      process.env.JWT_SECRET
+    );
+    req.user = decoded;
+    next();
+  } catch (err) {
+    res.status(401).json({ msg: "Invalid token" });
+  }
+}
