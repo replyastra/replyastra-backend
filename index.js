@@ -120,8 +120,7 @@ app.get("/webhook/instagram", (req, res) => {
 });
 
 app.post("/webhook/instagram", async (req, res) => {
-  console.log("🔥 INSTAGRAM MESSAGE RECEIVED");
-  console.log(JSON.stringify(req.body, null, 2));
+  console.log("🔥 MESSAGE RECEIVED");
 
   const entry = req.body.entry?.[0];
   const messaging = entry?.messaging?.[0];
@@ -134,21 +133,15 @@ app.post("/webhook/instagram", async (req, res) => {
     console.log("Text:", userMsg);
 
     try {
-      // ⚠️ IMPORTANT FIX HERE
       await axios.post(
-        `https://graph.facebook.com/v18.0/${process.env.IG_USER_ID}/messages`,
+        `https://graph.facebook.com/v18.0/${process.env.IG_USER_ID}/messages?access_token=${process.env.IG_TOKEN}`,
         {
           recipient: { id: senderId },
           message: { text: "Hello 👋 Auto reply from ReplyAstra" }
-        },
-        {
-          params: {
-            access_token: process.env.IG_TOKEN
-          }
         }
       );
 
-      console.log("✅ Reply sent successfully");
+      console.log("✅ Reply sent");
 
     } catch (err) {
       console.log("❌ Reply error:", err.response?.data || err.message);
