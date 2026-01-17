@@ -103,7 +103,7 @@ app.get("/api/instagram/test", async (req, res) => {
 
 // ================= WEBHOOK =================
 
-// VERIFY (Meta calls this)
+// VERIFY
 app.get("/webhook/instagram", (req, res) => {
   const VERIFY_TOKEN = "replyastra_verify";
 
@@ -112,16 +112,15 @@ app.get("/webhook/instagram", (req, res) => {
   const challenge = req.query["hub.challenge"];
 
   if (mode === "subscribe" && token === VERIFY_TOKEN) {
-    console.log("✅ Webhook verified");
+    console.log("Webhook verified");
     return res.status(200).send(challenge);
   }
-
-  res.sendStatus(403);
+  return res.sendStatus(403);
 });
 
-// RECEIVE EVENTS
+// RECEIVE DATA
 app.post("/webhook/instagram", (req, res) => {
-  console.log("🔥 WEBHOOK RECEIVED 🔥");
+  console.log("🔥 INSTAGRAM MESSAGE RECEIVED");
   console.log(JSON.stringify(req.body, null, 2));
   res.sendStatus(200);
 });
