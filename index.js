@@ -86,7 +86,7 @@ app.get("/api/dashboard", auth, (req, res) => {
 
 // ================= INSTAGRAM =================
 
-// TEST TOKEN API
+// TEST TOKEN
 app.get("/api/instagram/test", async (req, res) => {
   try {
     const url =
@@ -112,14 +112,17 @@ app.get("/webhook/instagram", (req, res) => {
   const challenge = req.query["hub.challenge"];
 
   if (mode === "subscribe" && token === VERIFY_TOKEN) {
-    console.log("Webhook verified");
+    console.log("✅ Webhook verified");
     return res.status(200).send(challenge);
   }
+
   return res.sendStatus(403);
 });
 
+// RECEIVE MESSAGE + AUTO REPLY
 app.post("/webhook/instagram", async (req, res) => {
-  console.log("🔥 MESSAGE RECEIVED");
+  console.log("🔥 INSTAGRAM MESSAGE RECEIVED");
+  console.log(JSON.stringify(req.body, null, 2));
 
   const entry = req.body.entry?.[0];
   const messaging = entry?.messaging?.[0];
@@ -131,19 +134,29 @@ app.post("/webhook/instagram", async (req, res) => {
     console.log("User:", senderId);
     console.log("Text:", userMsg);
 
-    // AUTO REPLY
-    await axios.post(
-      `https://graph.facebook.com/v18.0/me/messages?access_token=${process.env.IG_TOKEN}`,
-      {
-        recipient: { id: senderId },
-        message: { text: "Hello 👋 Auto reply from ReplyAstra" }
-      }
-    );
+    try {
+      await axios.post(
+        `https://graph.facebook.com/v18.0/${process.env.IG_USER_ID}/messages`,
+        {
+          recipient: { id: senderId },
+          message: { text: "Hello 👋 Auto reply from ReplyAstra" }
+        },
+        {
+          params: {
+            access_token: process.env.IG_TOKEN
+          }
+        }
+      );
+
+      console.log("✅ Reply sent successfully");
+
+    } catch (err) {
+      console.log("❌ Reply error:", err.response?.data || err.message);
+    }
   }
 
   res.sendStatus(200);
 });
-;
 
 // ================= START =================
 
@@ -151,4 +164,3 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Server running on", PORT);
 });
-
