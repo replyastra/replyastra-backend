@@ -119,7 +119,6 @@ app.get("/webhook/instagram", (req, res) => {
   return res.sendStatus(403);
 });
 
-// RECEIVE MESSAGE + AUTO REPLY
 app.post("/webhook/instagram", async (req, res) => {
   console.log("🔥 INSTAGRAM MESSAGE RECEIVED");
   console.log(JSON.stringify(req.body, null, 2));
@@ -135,6 +134,7 @@ app.post("/webhook/instagram", async (req, res) => {
     console.log("Text:", userMsg);
 
     try {
+      // ⚠️ IMPORTANT FIX HERE
       await axios.post(
         `https://graph.facebook.com/v18.0/${process.env.IG_USER_ID}/messages`,
         {
@@ -157,6 +157,7 @@ app.post("/webhook/instagram", async (req, res) => {
 
   res.sendStatus(200);
 });
+
 
 // ================= START =================
 
