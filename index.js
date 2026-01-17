@@ -118,12 +118,32 @@ app.get("/webhook/instagram", (req, res) => {
   return res.sendStatus(403);
 });
 
-// RECEIVE DATA
-app.post("/webhook/instagram", (req, res) => {
-  console.log("🔥 INSTAGRAM MESSAGE RECEIVED");
-  console.log(JSON.stringify(req.body, null, 2));
+app.post("/webhook/instagram", async (req, res) => {
+  console.log("🔥 MESSAGE RECEIVED");
+
+  const entry = req.body.entry?.[0];
+  const messaging = entry?.messaging?.[0];
+
+  if (messaging?.message?.text) {
+    const senderId = messaging.sender.id;
+    const userMsg = messaging.message.text;
+
+    console.log("User:", senderId);
+    console.log("Text:", userMsg);
+
+    // AUTO REPLY
+    await axios.post(
+      `https://graph.facebook.com/v18.0/me/messages?access_token=${process.env.IG_TOKEN}`,
+      {
+        recipient: { id: senderId },
+        message: { text: "Hello 👋 Auto reply from ReplyAstra" }
+      }
+    );
+  }
+
   res.sendStatus(200);
 });
+;
 
 // ================= START =================
 
