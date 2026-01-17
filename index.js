@@ -3,7 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const axios = require("axios"); // ONLY ONCE
+const axios = require("axios"); // only once
 
 const app = express();
 app.use(cors());
@@ -16,7 +16,6 @@ let users = [];
 app.get("/", (req, res) => {
   res.send("ReplyAstra API 🚀");
 });
-
 
 // ================= AUTH =================
 
@@ -32,12 +31,10 @@ app.post("/api/register", async (req, res) => {
     return res.status(400).json({ msg: "User already exists" });
 
   const hashed = await bcrypt.hash(password, 10);
-
   users.push({ email, password: hashed });
 
   res.json({ msg: "User registered successfully" });
 });
-
 
 // LOGIN
 app.post("/api/login", async (req, res) => {
@@ -60,7 +57,6 @@ app.post("/api/login", async (req, res) => {
   res.json({ token });
 });
 
-
 // AUTH MIDDLEWARE
 function auth(req, res, next) {
   const token = req.header("Authorization");
@@ -80,7 +76,6 @@ function auth(req, res, next) {
   }
 }
 
-
 // DASHBOARD
 app.get("/api/dashboard", auth, (req, res) => {
   res.json({
@@ -89,10 +84,9 @@ app.get("/api/dashboard", auth, (req, res) => {
   });
 });
 
-
 // ================= INSTAGRAM =================
 
-// TEST TOKEN API ✅
+// TEST TOKEN API
 app.get("/api/instagram/test", async (req, res) => {
   try {
     const url =
@@ -100,7 +94,6 @@ app.get("/api/instagram/test", async (req, res) => {
       `?fields=username&access_token=${process.env.IG_TOKEN}`;
 
     const response = await axios.get(url);
-
     res.json(response.data);
 
   } catch (err) {
@@ -108,7 +101,9 @@ app.get("/api/instagram/test", async (req, res) => {
   }
 });
 
-// WEBHOOK VERIFY
+// ================= WEBHOOK =================
+
+// VERIFY (Meta calls this)
 app.get("/webhook/instagram", (req, res) => {
   const VERIFY_TOKEN = "replyastra_verify";
 
@@ -117,49 +112,17 @@ app.get("/webhook/instagram", (req, res) => {
   const challenge = req.query["hub.challenge"];
 
   if (mode === "subscribe" && token === VERIFY_TOKEN) {
-    res.status(200).send(challenge);
-  } else {
-    res.sendStatus(403);
+    console.log("✅ Webhook verified");
+    return res.status(200).send(challenge);
   }
-});
 
-// WEBHOOK RECEIVER
-app.post("/webhook/instagram", (req, res) => {
-  console.log("Webhook Data:", JSON.stringify(req.body, null, 2));
-  res.sendStatus(200);
-});
-
-// ================= INSTAGRAM WEBHOOK =================
-
-app.post("/webhook/instagram", (req, res) => {
-  console.log("🔥 Webhook received:");
-  console.log(JSON.stringify(req.body, null, 2));
-  res.sendStatus(200);
-});
-// ================= WEBHOOK =================
-
-// Verification (Meta will check this)
-app.get("/webhook/instagram", (req, res) => {
-  const VERIFY_TOKEN = "replyastra_verify"; // SAME token you used in Meta
-
-  const mode = req.query["hub.mode"];
-  const token = req.query["hub.verify_token"];
-  const challenge = req.query["hub.challenge"];
-
-  if (mode && token) {
-    if (mode === "subscribe" && token === VERIFY_TOKEN) {
-      console.log("Webhook verified!");
-      return res.status(200).send(challenge);
-    }
-  }
   res.sendStatus(403);
 });
 
-
-// Receive messages
+// RECEIVE EVENTS
 app.post("/webhook/instagram", (req, res) => {
-  console.log("Webhook data:", JSON.stringify(req.body, null, 2));
-
+  console.log("🔥 WEBHOOK RECEIVED 🔥");
+  console.log(JSON.stringify(req.body, null, 2));
   res.sendStatus(200);
 });
 
@@ -169,3 +132,4 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Server running on", PORT);
 });
+
