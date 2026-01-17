@@ -136,6 +136,33 @@ app.post("/webhook/instagram", (req, res) => {
   console.log(JSON.stringify(req.body, null, 2));
   res.sendStatus(200);
 });
+// ================= WEBHOOK =================
+
+// Verification (Meta will check this)
+app.get("/webhook/instagram", (req, res) => {
+  const VERIFY_TOKEN = "replyastra_verify"; // SAME token you used in Meta
+
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
+
+  if (mode && token) {
+    if (mode === "subscribe" && token === VERIFY_TOKEN) {
+      console.log("Webhook verified!");
+      return res.status(200).send(challenge);
+    }
+  }
+  res.sendStatus(403);
+});
+
+
+// Receive messages
+app.post("/webhook/instagram", (req, res) => {
+  console.log("Webhook data:", JSON.stringify(req.body, null, 2));
+
+  res.sendStatus(200);
+});
+
 // ================= START =================
 
 const PORT = process.env.PORT || 10000;
