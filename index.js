@@ -129,6 +129,13 @@ app.post("/webhook/instagram", (req, res) => {
   res.sendStatus(200);
 });
 
+// ================= INSTAGRAM WEBHOOK =================
+
+app.post("/webhook/instagram", (req, res) => {
+  console.log("🔥 Webhook received:");
+  console.log(JSON.stringify(req.body, null, 2));
+  res.sendStatus(200);
+});
 // ================= START =================
 
 const PORT = process.env.PORT || 10000;
