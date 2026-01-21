@@ -3,16 +3,17 @@ const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const axios = require("axios"); // only once
+const axios = require("axios");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// TEMP DB
+// ================= TEMP STORAGE =================
 let users = [];
+let rules = [];
 
-// HOME
+// ================= HOME =================
 app.get("/", (req, res) => {
   res.send("ReplyAstra API 🚀");
 });
@@ -57,7 +58,7 @@ app.post("/api/login", async (req, res) => {
   res.json({ token });
 });
 
-// AUTH MIDDLEWARE
+// ================= AUTH MIDDLEWARE =================
 function auth(req, res, next) {
   const token = req.header("Authorization");
 
@@ -76,12 +77,39 @@ function auth(req, res, next) {
   }
 }
 
-// DASHBOARD
+// ================= DASHBOARD =================
 app.get("/api/dashboard", auth, (req, res) => {
   res.json({
     msg: "Welcome to ReplyAstra Dashboard 🚀",
     user: req.user.email
   });
+});
+
+// ================= RULES =================
+
+// SAVE RULE
+app.post("/api/rules", auth, (req, res) => {
+  const { trigger, reply } = req.body;
+
+  if (!trigger || !reply)
+    return res.status(400).json({ msg: "Fill all fields" });
+
+  rules.push({
+    user: req.user.email,
+    trigger,
+    reply
+  });
+
+  res.json({ msg: "Rule saved successfully" });
+});
+
+// GET RULES
+app.get("/api/rules", auth, (req, res) => {
+  const userRules = rules.filter(
+    r => r.user === req.user.email
+  );
+
+  res.json(userRules);
 });
 
 // ================= INSTAGRAM =================
@@ -119,8 +147,10 @@ app.get("/webhook/instagram", (req, res) => {
   return res.sendStatus(403);
 });
 
+// RECEIVE MESSAGE
 app.post("/webhook/instagram", async (req, res) => {
   console.log("🔥 MESSAGE RECEIVED");
+  console.log(JSON.stringify(req.body, null, 2));
 
   const entry = req.body.entry?.[0];
   const messaging = entry?.messaging?.[0];
@@ -151,9 +181,7 @@ app.post("/webhook/instagram", async (req, res) => {
   res.sendStatus(200);
 });
 
-
 // ================= START =================
-
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Server running on", PORT);
