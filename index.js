@@ -15,7 +15,7 @@ let rules = [];
 
 // ================= HOME =================
 app.get("/", (req, res) => {
-  res.send("ReplyAstra API 🚀");
+  res.send("ReplyAstra API 🚀 Running");
 });
 
 // ================= AUTH =================
@@ -70,6 +70,7 @@ function auth(req, res, next) {
       token.replace("Bearer ", ""),
       process.env.JWT_SECRET || "replyastra_secret"
     );
+
     req.user = decoded;
     next();
   } catch {
@@ -164,10 +165,13 @@ app.post("/webhook/instagram", async (req, res) => {
 
     try {
       await axios.post(
-        `https://graph.facebook.com/v18.0/${process.env.IG_USER_ID}/messages?access_token=${process.env.IG_TOKEN}`,
+        `https://graph.facebook.com/v18.0/${process.env.IG_USER_ID}/messages`,
         {
           recipient: { id: senderId },
           message: { text: "Hello 👋 Auto reply from ReplyAstra" }
+        },
+        {
+          params: { access_token: process.env.IG_TOKEN }
         }
       );
 
